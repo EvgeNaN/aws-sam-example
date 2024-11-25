@@ -1,0 +1,165 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: >
+  todos
+
+  Sample SAM Template for todos
+
+Globals:
+  Function:
+    Timeout: 3
+    Handler: app.lambdaHandler
+    Runtime: nodejs20.x
+    Architectures:
+      - arm64
+
+Resources:
+  CreateTodoFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: lambdas/create
+      Events:
+        Create:
+          Type: Api
+          Properties:
+            Path: /
+            Method: post
+      Policies: 
+        - DynamoDBCrudPolicy:
+            TableName: 
+              !Ref TodosTable
+    Metadata:
+      BuildMethod: esbuild
+      BuildProperties:
+        Minify: true
+        Target: "es2020"
+        Sourcemap: true
+        EntryPoints: 
+          - app.ts
+        External:
+          - "@aws-sdk/lib-dynamodb"
+          - "@aws-sdk/client-dynamodb"
+
+  GetListFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: lambdas/get-list
+      Events:
+        Create:
+          Type: Api
+          Properties:
+            Path: /
+            Method: get
+      Policies: 
+        - DynamoDBCrudPolicy:
+            TableName: 
+              !Ref TodosTable
+    Metadata:
+      BuildMethod: esbuild
+      BuildProperties:
+        Minify: true
+        Target: "es2020"
+        Sourcemap: true
+        EntryPoints: 
+          - app.ts
+        External:
+          - "@aws-sdk/lib-dynamodb"
+          - "@aws-sdk/client-dynamodb"
+
+  GetOneFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: lambdas/get-one
+      Events:
+        Create:
+          Type: Api
+          Properties:
+            Path: /{id}
+            Method: get
+      Policies: 
+        - DynamoDBCrudPolicy:
+            TableName: 
+              !Ref TodosTable
+    Metadata:
+      BuildMethod: esbuild
+      BuildProperties:
+        Minify: true
+        Target: "es2020"
+        Sourcemap: true
+        EntryPoints: 
+          - app.ts
+        External:
+          - "@aws-sdk/lib-dynamodb"
+          - "@aws-sdk/client-dynamodb"
+
+  UpdateOneFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: lambdas/update
+      Events:
+        Create:
+          Type: Api
+          Properties:
+            Path: /{id}
+            Method: put
+      Policies: 
+        - DynamoDBCrudPolicy:
+            TableName: 
+              !Ref TodosTable
+    Metadata:
+      BuildMethod: esbuild
+      BuildProperties:
+        Minify: true
+        Target: "es2020"
+        Sourcemap: true
+        EntryPoints: 
+          - app.ts
+        External:
+          - "@aws-sdk/lib-dynamodb"
+          - "@aws-sdk/client-dynamodb"
+
+  DeleteOneFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: lambdas/delete
+      Events:
+        Create:
+          Type: Api
+          Properties:
+            Path: /{id}
+            Method: delete
+      Policies: 
+        - DynamoDBCrudPolicy:
+            TableName: 
+              !Ref TodosTable
+    Metadata:
+      BuildMethod: esbuild
+      BuildProperties:
+        Minify: true
+        Target: "es2020"
+        Sourcemap: true
+        EntryPoints: 
+          - app.ts
+        External:
+          - "@aws-sdk/lib-dynamodb"
+          - "@aws-sdk/client-dynamodb"
+  
+  TodosTable:
+    Type: AWS::Serverless::SimpleTable
+    Properties: 
+      TableName: Todos
+  
+  # CommonLayer can be used for external dependencies.
+  CommonLayer:
+    Type: AWS::Serverless::LayerVersion
+    Properties:
+      LayerName: 'sam-app-dependencies'
+      ContentUri: dependencies/
+      CompatibleRuntimes:
+        - nodejs20.x
+      RetentionPolicy: Retain
+
+Outputs:
+  TodosApi:
+    Description: "API Gateway endpoint URL for Prod stage for ToDo's application"
+    Value: !Sub "https://${ServerlessRestApi}.execute-api.${AWS::Region}.amazonaws.com/todos/"
